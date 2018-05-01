@@ -86,20 +86,19 @@ public class InverseKinematics : MonoBehaviour
         return gradient;
     }
 
-    protected Vector3 ForwardKinematics(float[] angles)
+    protected PositionRotation ForwardKinematics(float[] angles)
     {
         Vector3 prevPoint = Joints[0].transform.position;
         Quaternion rotation = Quaternion.identity;
 
-        for (int i = 1; i < Joints.Length; i++)
+        for (int i = 0; i < Joints.Length - 1; i++)
         {
             // Rotates around a new axis
-            rotation *= Quaternion.AngleAxis(angles[i - 1], Joints[i - 1].Axis);
-            Vector3 nextPoint = prevPoint + rotation * Joints[i].StartOffset;
-
+            rotation *= Quaternion.AngleAxis(angles[i], Joints[i].Axis);
+            Vector3 nextPoint = prevPoint + rotation * Joints[i + 1].StartOffset;
             prevPoint = nextPoint;
         }
 
-        return prevPoint;
+        return new PositionRotation(prevPoint, rotation);
     }
 }

@@ -5,6 +5,7 @@ using UnityEngine;
 public class IKJoint : MonoBehaviour
 {
     public Vector3 Axis;
+    [HideInInspector]
     public Vector3 StartOffset;
     public float MinAngle;
     public float MaxAngle;
