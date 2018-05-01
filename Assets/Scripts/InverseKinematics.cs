@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class InverseKinematics : MonoBehaviour
 {
-    public RobotJoint[] Joints;
+    public IKJoint[] Joints;
 
     protected float[] Angles = null;
     public Transform Target;
@@ -34,7 +34,7 @@ public class InverseKinematics : MonoBehaviour
     {
         Vector3 direction = (Target.position - transform.position).normalized;
         targetPosition = Target.position - direction * TargetDistance;
-        if (DistanceFromTarget(targetPosition, Angles) > StopThreshold)
+        if (ErrorFunction(targetPosition, Angles) > StopThreshold)
         {
             ApprochTarget(targetPosition);
         }
@@ -43,7 +43,11 @@ public class InverseKinematics : MonoBehaviour
         Debug.DrawLine(Target.transform.position, targetPosition, new Color(0, 0.5f, 0));
     }
 
-    public float DistanceFromTarget(Vector3 target, float[] angles)
+	protected virtual float ErrorFunction(Vector3 target, float[] angles) {
+		return DistanceFromTarget(target, angles);
+	}
+
+    protected float DistanceFromTarget(Vector3 target, float[] angles)
     {
         Vector3 point = ForwardKinematics(angles);
         return Vector3.Distance(point, target);
@@ -54,34 +58,28 @@ public class InverseKinematics : MonoBehaviour
         // Starts from the end, down to the base
         for (int i = Joints.Length - 1; i >= 0; i--)
         {
-            if (DistanceFromTarget(target, Angles) <= StopThreshold)
+            if (ErrorFunction(target, Angles) <= StopThreshold)
             {
                 break;
             }
 
-            float error = DistanceFromTarget(target, Angles);
+            float error = ErrorFunction(target, Angles);
             float slowdown = Mathf.Clamp01((error - StopThreshold) / (SlowdownThreshold - StopThreshold));
 
             // Gradient descent
             float gradient = CalculateGradient(target, Angles, i, DeltaGradient);
             Angles[i] -= LearningRate * gradient * slowdown;
-            // Clamp
-            Angles[i] = Joints[i].ClampAngle(Angles[i]);
-        }
-
-        for (int i = 0; i < Joints.Length - 1; i++)
-        {
-            Joints[i].SetAngle(Angles[i]);
+			Joints[i].SetAngle(Angles[i]);
         }
     }
 
     protected float CalculateGradient(Vector3 target, float[] angles, int i, float delta)
     {
         float[] anglesCopy = (float[])angles.Clone();
-        float f_x = DistanceFromTarget(target, anglesCopy);
+        float f_x = ErrorFunction(target, anglesCopy);
 
         anglesCopy[i] += delta;
-        float f_x_plus_h = DistanceFromTarget(target, anglesCopy);
+        float f_x_plus_h = ErrorFunction(target, anglesCopy);
 
         float gradient = (f_x_plus_h - f_x) / delta;
 
