@@ -8670,7 +8670,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 152a10f69619d824497ed8e072586b8a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Axis: {x: 1, y: 1, z: 1}
+  Axis: {x: 1, y: 0, z: 0}
   StartOffset: {x: 0, y: 0, z: 0}
   MinAngle: -180
   MaxAngle: 180
